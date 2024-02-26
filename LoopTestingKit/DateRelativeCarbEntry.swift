@@ -20,9 +20,9 @@ struct DateRelativeCarbEntry: DateRelativeQuantity, Codable {
         return HKQuantity(unit: .gram(), doubleValue: gramValue)
     }
 
-    func newCarbEntry(relativeTo referenceDate: Date) -> NewCarbEntry {
+    func newCarbEntry(relativeTo referenceDate: Date, absorptionData: [Int: Double]?) -> NewCarbEntry {
         let startDate = referenceDate.addingTimeInterval(dateOffset)
-        return NewCarbEntry(quantity: quantity, startDate: startDate, foodType: nil, absorptionTime: absorptionTime)
+        return NewCarbEntry(quantity: quantity, startDate: startDate, foodType: nil, absorptionTime: absorptionTime, absorptionData: absorptionData)
     }
 
     func enteredAt(relativeTo referenceDate: Date) -> Date {

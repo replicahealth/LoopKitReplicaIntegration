@@ -28,6 +28,7 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
 
     public let foodType: String?
     public let absorptionTime: TimeInterval?
+    public var historicalAbsorptionData: [Int : Double]?
     public let createdByCurrentApp: Bool
 
     // MARK: - User dates

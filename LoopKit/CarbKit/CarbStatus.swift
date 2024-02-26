@@ -18,6 +18,7 @@ public struct CarbStatus<T: CarbEntry> {
 
     /// The timeline of observed carb absorption. Nil if observed absorption is less than the modeled minimum
     public let observedTimeline: [CarbValue]?
+    
 }
 
 
@@ -36,6 +37,10 @@ extension CarbStatus: SampleValue {
 extension CarbStatus: CarbEntry {
     public var absorptionTime: TimeInterval? {
         return absorption?.estimatedDate.duration ?? entry.absorptionTime
+    }
+    
+    public var historicalAbsorptionData: [Int : Double]? {
+        return nil
     }
 }
 

@@ -18,8 +18,10 @@ public struct NewCarbEntry: CarbEntry, Equatable, RawRepresentable {
     public let startDate: Date
     public let foodType: String?
     public let absorptionTime: TimeInterval?
+    public var historicalAbsorptionData: [Int : Double]?
 
-    public init(date: Date = Date(), quantity: HKQuantity, startDate: Date, foodType: String?, absorptionTime: TimeInterval?) {
+
+    public init(date: Date = Date(), quantity: HKQuantity, startDate: Date, foodType: String?, absorptionTime: TimeInterval?, absorptionData: [Int: Double]? = nil) {
         self.date = date
         self.quantity = quantity
         self.startDate = startDate
@@ -31,7 +33,8 @@ public struct NewCarbEntry: CarbEntry, Equatable, RawRepresentable {
         guard
             let date = rawValue["date"] as? Date,
             let grams = rawValue["grams"] as? Double,
-            let startDate = rawValue["startDate"] as? Date
+            let startDate = rawValue["startDate"] as? Date,
+            let absorptionData = rawValue["absorptionData"] as? [Int : Double]
         else {
             return nil
         }
@@ -41,7 +44,8 @@ public struct NewCarbEntry: CarbEntry, Equatable, RawRepresentable {
             quantity: HKQuantity(unit: .gram(), doubleValue: grams),
             startDate: startDate,
             foodType: rawValue["foodType"] as? String,
-            absorptionTime: rawValue["absorptionTime"] as? TimeInterval
+            absorptionTime: rawValue["absorptionTime"] as? TimeInterval,
+            absorptionData: absorptionData
         )
     }
 

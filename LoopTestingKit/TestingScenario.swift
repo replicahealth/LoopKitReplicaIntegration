@@ -26,7 +26,7 @@ public struct TestingScenario {
             .sorted(by: { $0.date < $1.date })
         let carbEntries = dateRelativeCarbEntries
             .filter { $0.enteredAt(relativeTo: referenceDate) <= referenceDate }
-            .map { $0.newCarbEntry(relativeTo: referenceDate) }
+            .map { $0.newCarbEntry(relativeTo: referenceDate, absorptionData: nil) }
         return TestingScenarioInstance(glucoseSamples: glucoseSamples, pumpEvents: pumpEvents, carbEntries: carbEntries)
     }
 
