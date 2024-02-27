@@ -28,7 +28,7 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
 
     public let foodType: String?
     public let absorptionTime: TimeInterval?
-    public var historicalAbsorptionData: [Int : Double]?
+    public var absorptionData: [Int : Double]?
     public let createdByCurrentApp: Bool
 
     // MARK: - User dates
@@ -45,6 +45,7 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
         quantity: HKQuantity,
         foodType: String?,
         absorptionTime: TimeInterval?,
+        absorptionData: [Int: Double]?,
         createdByCurrentApp: Bool,
         userCreatedDate: Date?,
         userUpdatedDate: Date?
@@ -57,6 +58,7 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
         self.quantity = quantity
         self.foodType = foodType
         self.absorptionTime = absorptionTime
+        self.absorptionData = absorptionData
         self.createdByCurrentApp = createdByCurrentApp
         self.userCreatedDate = userCreatedDate
         self.userUpdatedDate = userUpdatedDate
@@ -74,6 +76,7 @@ extension StoredCarbEntry {
             quantity: managedObject.quantity,
             foodType: managedObject.foodType,
             absorptionTime: managedObject.absorptionTime,
+            absorptionData: managedObject.absorptionData,
             createdByCurrentApp: managedObject.createdByCurrentApp,
             userCreatedDate: managedObject.userCreatedDate,
             userUpdatedDate: managedObject.userUpdatedDate
@@ -92,6 +95,7 @@ extension StoredCarbEntry: Codable {
                   quantity: HKQuantity(unit: .gram(), doubleValue: try container.decode(Double.self, forKey: .quantity)),
                   foodType: try container.decodeIfPresent(String.self, forKey: .foodType),
                   absorptionTime: try container.decodeIfPresent(TimeInterval.self, forKey: .absorptionTime),
+                  absorptionData: try container.decodeIfPresent([Int: Double].self, forKey: .absorptionTime),
                   createdByCurrentApp: try container.decode(Bool.self, forKey: .createdByCurrentApp),
                   userCreatedDate: try container.decodeIfPresent(Date.self, forKey: .userCreatedDate),
                   userUpdatedDate: try container.decodeIfPresent(Date.self, forKey: .userUpdatedDate)
@@ -122,6 +126,7 @@ extension StoredCarbEntry: Codable {
         case quantity
         case foodType
         case absorptionTime
+        case absorptionData
         case createdByCurrentApp
         case userCreatedDate
         case userUpdatedDate
@@ -162,6 +167,7 @@ extension StoredCarbEntry {
             quantity: HKQuantity(unit: HKUnit(from: unitString), doubleValue: value),
             foodType: rawValue["foodType"] as? String,
             absorptionTime: rawValue["absorptionTime"] as? TimeInterval,
+            absorptionData: rawValue["absorptionData"] as? [Int: Double],
             createdByCurrentApp: createdByCurrentApp,
             userCreatedDate: nil,
             userUpdatedDate: nil

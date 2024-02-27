@@ -11,5 +11,5 @@ import Foundation
 
 public protocol CarbEntry: SampleValue {
     var absorptionTime: TimeInterval? { get }
-    var historicalAbsorptionData: [Int: Double]? { get }
+    var absorptionData: [Int: Double]? { get }
 }

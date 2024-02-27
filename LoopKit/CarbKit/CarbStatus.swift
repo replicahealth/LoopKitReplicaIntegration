@@ -39,7 +39,7 @@ extension CarbStatus: CarbEntry {
         return absorption?.estimatedDate.duration ?? entry.absorptionTime
     }
     
-    public var historicalAbsorptionData: [Int : Double]? {
+    public var absorptionData: [Int : Double]? {
         return nil
     }
 }

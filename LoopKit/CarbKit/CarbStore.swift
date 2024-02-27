@@ -376,7 +376,10 @@ extension CarbStore {
 
         cacheStore.managedObjectContext.performAndWait {
             do {
-                entries = try self.getActiveCachedCarbObjects(start: start, end: end).map { StoredCarbEntry(managedObject: $0) }
+                entries = try self.getActiveCachedCarbObjects(start: start, end: end).map {
+                    StoredCarbEntry(managedObject: $0)
+                }
+                
             } catch let coreDataError {
                 error = .coreDataError(coreDataError)
             }
@@ -1447,7 +1450,7 @@ fileprivate extension NSManagedObjectContext {
 
         let request: NSFetchRequest<CachedCarbObject> = CachedCarbObject.fetchRequest()
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "createdByCurrentApp == YES"),
+            //NSPredicate(format: "createdByCurrentApp == YES"),
             NSPredicate(format: "syncIdentifier == %@", syncIdentifier),
             NSPredicate(format: "syncVersion == %d", syncVersion),
             NSPredicate(format: "operation != %d", Operation.delete.rawValue),
@@ -1470,7 +1473,7 @@ fileprivate extension NSManagedObjectContext {
 
         let request: NSFetchRequest<CachedCarbObject> = CachedCarbObject.fetchRequest()
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "createdByCurrentApp == YES"),
+            //NSPredicate(format: "createdByCurrentApp == YES"),
             NSPredicate(format: "uuid == %@", uuid as NSUUID),
             NSPredicate(format: "operation != %d", Operation.delete.rawValue),
             NSPredicate(format: "supercededDate == NIL")

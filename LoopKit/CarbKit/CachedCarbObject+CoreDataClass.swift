@@ -23,6 +23,41 @@ class CachedCarbObject: NSManagedObject {
             primitiveAbsorptionTime = newValue != nil ? NSNumber(value: newValue!) : nil
         }
     }
+    
+    var absorptionData: [Int: Double]? {
+        get {
+            willAccessValue(forKey: "absorptionData")
+            defer { didAccessValue(forKey: "absorptionData") }
+            
+            guard let timesString = primitiveAbsorptionDataKeys,
+                  let valuesString = primitiveAbsorptionDataValues else {
+                return nil
+            }
+            
+            let times = timesString.split(separator: ",").compactMap { Int($0) }
+            let values = valuesString.split(separator: ",").compactMap { Double($0) }
+            
+            guard times.count == values.count else { return nil }
+            
+            var result = [Int: Double]()
+            for (index, time) in times.enumerated() {
+                result[time] = values[index]
+            }
+            
+            return result
+        }
+        set {
+            willChangeValue(forKey: "absorptionData")
+            defer { didChangeValue(forKey: "absorptionData") }
+            
+            let keys = newValue?.keys.map { String($0) }.joined(separator: ",")
+            let values = newValue?.values.map { String($0) }.joined(separator: ",")
+            
+            primitiveAbsorptionDataKeys = keys
+            primitiveAbsorptionDataValues = values
+        }
+    }
+
 
     var syncVersion: Int? {
         get {
@@ -91,7 +126,8 @@ extension CachedCarbObject {
     // HealthKit
     func create(from sample: HKQuantitySample, on date: Date = Date()) {
         self.absorptionTime = sample.absorptionTime
-        self.createdByCurrentApp = sample.createdByCurrentApp
+        self.absorptionData = sample.absorptionData
+        self.createdByCurrentApp = true//sample.createdByCurrentApp
         self.foodType = sample.foodType
         self.grams = sample.quantity.doubleValue(for: .gram())
         self.startDate = sample.startDate
@@ -117,6 +153,7 @@ extension CachedCarbObject {
         precondition(object.syncVersion != nil)
 
         self.absorptionTime = entry.absorptionTime
+        self.absorptionData = entry.absorptionData
         self.createdByCurrentApp = object.createdByCurrentApp
         self.foodType = entry.foodType
         self.grams = entry.quantity.doubleValue(for: .gram())
@@ -145,7 +182,9 @@ extension CachedCarbObject {
 //        precondition(sample.syncIdentifier == object.syncIdentifier)
 
         self.absorptionTime = sample.absorptionTime
-        self.createdByCurrentApp = sample.createdByCurrentApp
+        self.absorptionData = sample.absorptionData
+
+        self.createdByCurrentApp = true//sample.createdByCurrentApp
         self.foodType = sample.foodType
         self.grams = sample.quantity.doubleValue(for: .gram())
         self.startDate = sample.startDate
@@ -219,14 +258,13 @@ extension CachedCarbObject {
         var metadata = [String: Any]()
 
         metadata[HKMetadataKeyFoodType] = foodType
-        metadata[MetadataKeyAbsorptionTime] = absorptionTime
-
         metadata[HKMetadataKeySyncIdentifier] = syncIdentifier
         metadata[HKMetadataKeySyncVersion] = syncVersion
 
         metadata[MetadataKeyUserCreatedDate] = userCreatedDate
         metadata[MetadataKeyUserUpdatedDate] = userUpdatedDate
-
+        metadata[MetadataKeyAbsorptionTime] = absorptionTime
+        
         return HKQuantitySample(
             type: HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates)!,
             quantity: quantity,

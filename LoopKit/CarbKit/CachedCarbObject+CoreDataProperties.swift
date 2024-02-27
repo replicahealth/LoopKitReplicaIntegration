@@ -17,6 +17,8 @@ extension CachedCarbObject {
     }
 
     @NSManaged public var primitiveAbsorptionTime: NSNumber?
+    @NSManaged public var primitiveAbsorptionDataValues: String?
+    @NSManaged public var primitiveAbsorptionDataKeys: String?
     @NSManaged public var createdByCurrentApp: Bool
     @NSManaged public var foodType: String?
     @NSManaged public var grams: Double
@@ -39,6 +41,7 @@ extension CachedCarbObject: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(absorptionTime, forKey: .absorptionTime)
+        try container.encodeIfPresent(absorptionData, forKey: .absorptionData)
         try container.encode(createdByCurrentApp, forKey: .createdByCurrentApp)
         try container.encodeIfPresent(foodType, forKey: .foodType)
         try container.encode(grams, forKey: .grams)
@@ -58,6 +61,7 @@ extension CachedCarbObject: Encodable {
 
     private enum CodingKeys: String, CodingKey {
         case absorptionTime
+        case absorptionData
         case createdByCurrentApp
         case foodType
         case grams
