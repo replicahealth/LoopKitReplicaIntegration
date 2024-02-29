@@ -29,6 +29,12 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
     public let foodType: String?
     public let absorptionTime: TimeInterval?
     public var absorptionData: [Int : Double]?
+    public var absorptionDataBlob: Data?{
+        get{
+            guard let data = absorptionData else { return nil }
+            return try? JSONEncoder().encode(data)
+        }
+    }
     public let createdByCurrentApp: Bool
 
     // MARK: - User dates
@@ -67,6 +73,7 @@ public struct StoredCarbEntry: CarbEntry, Equatable {
 
 extension StoredCarbEntry {
     init(managedObject: CachedCarbObject) {
+        let absorptionData = managedObject.absorptionData
         self.init(
             uuid: managedObject.uuid,
             provenanceIdentifier: managedObject.provenanceIdentifier,
@@ -76,7 +83,7 @@ extension StoredCarbEntry {
             quantity: managedObject.quantity,
             foodType: managedObject.foodType,
             absorptionTime: managedObject.absorptionTime,
-            absorptionData: managedObject.absorptionData,
+            absorptionData: absorptionData,
             createdByCurrentApp: managedObject.createdByCurrentApp,
             userCreatedDate: managedObject.userCreatedDate,
             userUpdatedDate: managedObject.userUpdatedDate

@@ -238,29 +238,44 @@ struct PiecewiseLinearAbsorption: CarbAbsorptionComputable {
 
 struct DataDrivenAbsorption: CarbAbsorptionComputable {
     var timingData: [Int: Double] = [:]
-    let maxObservationMins = 60 * 5
+    var maxObservationMins: Int = 60 * 5
     var total: Double = 1.0
     func percentAbsorptionAtPercentTime(_ percentTime: Double) -> Double {
         var absorption = 0.0
-        for (k, v) in timingData{
-            if 0 <= k && maxObservationMins > k{
-                absorption += v
+        switch percentTime {
+        case let t where t <= 0.0:
+            return 0.0
+        case let t where t < 1.0:
+            for (k, v) in timingData{
+                if 0 <= k && maxObservationMins > k && Double(k)/Double(maxObservationMins) <= t && absorption <= total{
+                    absorption += v
+                }
             }
+            return absorption / total
+        default:
+            return 1.0
         }
-        return absorption / total
     }
 
     func percentTimeAtPercentAbsorption(_ percentAbsorption: Double) -> Double {
         var t = 0
         var absorption = 0.0
-        while t < maxObservationMins{
-            if percentAbsorption <= absorption{
-                break
+        
+        switch percentAbsorption {
+        case let a where a <= 0.0:
+            return 0.0
+        case let a where a < 1.0:
+            while t < maxObservationMins{
+                if percentAbsorption <= (absorption / total){
+                    break
+                }
+                absorption += timingData[t] ?? 0.0
+                t += 5
             }
-            absorption += timingData[t] ?? 0.0
-            t += 5
+            return Double(t) / Double(maxObservationMins)
+        default:
+            return 1.0
         }
-        return Double(t) / Double(maxObservationMins)
     }
 
     func percentRateAtPercentTime(_ percentTime: Double) -> Double {
@@ -275,9 +290,12 @@ extension CarbEntry {
     func carbsOnBoard(at date: Date, defaultAbsorptionTime: TimeInterval, delay: TimeInterval, absorptionModel: CarbAbsorptionComputable) -> Double {
         let time = date.timeIntervalSince(startDate)
         let value: Double
-
+        var _absorptionModel = absorptionModel
+        if let absorptionData = absorptionData{
+            _absorptionModel = DataDrivenAbsorption(timingData: absorptionData, maxObservationMins: Int((absorptionTime ?? (3 * 60)) / 60), total: quantity.doubleValue(for: .gram()))
+        }
         if time >= 0 {
-            value = absorptionModel.unabsorbedCarbs(of: quantity.doubleValue(for: HKUnit.gram()), atTime: time - delay, absorptionTime: absorptionTime ?? defaultAbsorptionTime)
+            value = _absorptionModel.unabsorbedCarbs(of: quantity.doubleValue(for: HKUnit.gram()), atTime: time - delay, absorptionTime: absorptionTime ?? defaultAbsorptionTime)
         } else {
             value = 0
         }
@@ -293,8 +311,11 @@ extension CarbEntry {
         absorptionModel: CarbAbsorptionComputable
     ) -> Double {
         let time = date.timeIntervalSince(startDate)
-
-        return absorptionModel.absorbedCarbs(
+        var _absorptionModel = absorptionModel
+        if let _absorptionData = absorptionData{
+            _absorptionModel = DataDrivenAbsorption(timingData: _absorptionData, maxObservationMins: Int((absorptionTime ?? (3 * 60)) / 60), total: quantity.doubleValue(for: .gram()))
+        }
+        return _absorptionModel.absorbedCarbs(
             of: quantity.doubleValue(for: .gram()),
             atTime: time - delay,
             absorptionTime: absorptionTime
@@ -378,7 +399,7 @@ extension Collection where Element: CarbEntry {
 
         return batches
     }
-
+    
     func carbsOnBoard(
         from start: Date? = nil,
         to end: Date? = nil,
@@ -484,12 +505,16 @@ extension Collection {
 
         repeat {
             let value = reduce(0.0) { (value, entry) -> Double in
+                var model = absorptionModel
+                if let data = entry.absorptionData{
+                    model = DataDrivenAbsorption(timingData: data, maxObservationMins: Int((entry.absorptionTime ?? (3 * 60)) / 60), total: entry.quantity.doubleValue(for: .gram()))
+                }
                 return value + entry.dynamicCarbsOnBoard(
                     at: date,
                     defaultAbsorptionTime: defaultAbsorptionTime,
                     delay: delay,
                     delta: delta,
-                    absorptionModel: absorptionModel
+                    absorptionModel: model
                 )
             }
 
@@ -909,6 +934,7 @@ extension Collection where Element: CarbEntry {
             for builder in activeBuilders {
                 // Apply a portion of the effect to this entry
                 let effectTime = dxEffect.startDate.timeIntervalSince(builder.entry.startDate)
+
                 let absorptionRateAtEffectTime = builder.absorptionRateAtTime(t: effectTime)
                 // If total rate is zero, assign zero to partial effect
                 var partialEffectValue: Double = 0.0

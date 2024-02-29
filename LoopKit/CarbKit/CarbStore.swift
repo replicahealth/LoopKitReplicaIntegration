@@ -376,8 +376,9 @@ extension CarbStore {
 
         cacheStore.managedObjectContext.performAndWait {
             do {
-                entries = try self.getActiveCachedCarbObjects(start: start, end: end).map {
-                    StoredCarbEntry(managedObject: $0)
+                let objects = try self.getActiveCachedCarbObjects(start: start, end: end)
+                entries = objects.map { cachedCarbObject in
+                    return StoredCarbEntry(managedObject: cachedCarbObject)
                 }
                 
             } catch let coreDataError {
@@ -979,7 +980,7 @@ extension CarbStore {
             let carbRatioSchedule = carbRatioScheduleApplyingOverrideHistory,
             let insulinSensitivitySchedule = insulinSensitivityScheduleApplyingOverrideHistory
         {
-            return samples.map(
+            let carbStatuses = samples.map(
                 to: velocities,
                 carbRatio: carbRatioSchedule,
                 insulinSensitivity: insulinSensitivitySchedule,
@@ -990,7 +991,8 @@ extension CarbStore {
                 absorptionModel: settings.absorptionModel,
                 adaptiveAbsorptionRateEnabled: settings.adaptiveAbsorptionRateEnabled,
                 adaptiveRateStandbyIntervalFraction: settings.adaptiveRateStandbyIntervalFraction
-            ).dynamicCarbsOnBoard(
+            )
+            let carbValues = carbStatuses.dynamicCarbsOnBoard(
                 from: start,
                 to: end,
                 defaultAbsorptionTime: defaultAbsorptionTimes.medium,
@@ -998,6 +1000,7 @@ extension CarbStore {
                 delay: delay,
                 delta: delta
             )
+            return carbValues
         } else {
             return samples.carbsOnBoard(
                 from: start,

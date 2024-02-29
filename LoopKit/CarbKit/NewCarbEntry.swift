@@ -20,6 +20,11 @@ public struct NewCarbEntry: CarbEntry, Equatable, RawRepresentable {
     public let absorptionTime: TimeInterval?
     public var absorptionData: [Int : Double]?
 
+    public var absorptionDataBlob: Data?{
+        get{
+            return try? JSONEncoder().encode(absorptionData)
+        }
+    }
 
     public init(date: Date = Date(), quantity: HKQuantity, startDate: Date, foodType: String?, absorptionTime: TimeInterval?, absorptionData: [Int: Double]? = nil) {
         self.date = date

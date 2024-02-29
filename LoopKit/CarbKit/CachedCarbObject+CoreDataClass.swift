@@ -28,33 +28,14 @@ class CachedCarbObject: NSManagedObject {
         get {
             willAccessValue(forKey: "absorptionData")
             defer { didAccessValue(forKey: "absorptionData") }
-            
-            guard let timesString = primitiveAbsorptionDataKeys,
-                  let valuesString = primitiveAbsorptionDataValues else {
-                return nil
-            }
-            
-            let times = timesString.split(separator: ",").compactMap { Int($0) }
-            let values = valuesString.split(separator: ",").compactMap { Double($0) }
-            
-            guard times.count == values.count else { return nil }
-            
-            var result = [Int: Double]()
-            for (index, time) in times.enumerated() {
-                result[time] = values[index]
-            }
-            
-            return result
+            guard let data = primitiveAbsorptionData else { return nil }
+            return try? JSONDecoder().decode([Int: Double].self, from: data)
         }
         set {
             willChangeValue(forKey: "absorptionData")
             defer { didChangeValue(forKey: "absorptionData") }
-            
-            let keys = newValue?.keys.map { String($0) }.joined(separator: ",")
-            let values = newValue?.values.map { String($0) }.joined(separator: ",")
-            
-            primitiveAbsorptionDataKeys = keys
-            primitiveAbsorptionDataValues = values
+            let data = try? JSONEncoder().encode(newValue)
+            primitiveAbsorptionData = data
         }
     }
 
@@ -104,6 +85,7 @@ extension CachedCarbObject {
     // Loop
     func create(from entry: NewCarbEntry, provenanceIdentifier: String, syncIdentifier: String, syncVersion: Int = 1, on date: Date = Date()) {
         self.absorptionTime = entry.absorptionTime
+        self.absorptionData = entry.absorptionData
         self.createdByCurrentApp = true
         self.foodType = entry.foodType
         self.grams = entry.quantity.doubleValue(for: .gram())
@@ -175,16 +157,16 @@ extension CachedCarbObject {
 
     // HealthKit
     func update(from sample: HKQuantitySample, replacing object: CachedCarbObject, on date: Date = Date()) {
-//        precondition(!object.createdByCurrentApp)
-//        precondition(sample.createdByCurrentApp == object.createdByCurrentApp)
-//        precondition(sample.provenanceIdentifier == object.provenanceIdentifier)
-//        precondition(object.syncIdentifier != nil)
-//        precondition(sample.syncIdentifier == object.syncIdentifier)
+        precondition(!object.createdByCurrentApp)
+        precondition(sample.createdByCurrentApp == object.createdByCurrentApp)
+        precondition(sample.provenanceIdentifier == object.provenanceIdentifier)
+        precondition(object.syncIdentifier != nil)
+        precondition(sample.syncIdentifier == object.syncIdentifier)
 
         self.absorptionTime = sample.absorptionTime
         self.absorptionData = sample.absorptionData
 
-        self.createdByCurrentApp = true//sample.createdByCurrentApp
+        self.createdByCurrentApp = sample.createdByCurrentApp
         self.foodType = sample.foodType
         self.grams = sample.quantity.doubleValue(for: .gram())
         self.startDate = sample.startDate
@@ -227,7 +209,6 @@ extension CachedCarbObject {
 }
 
 // MARK: - Watch Synchronization
-
 extension CachedCarbObject {
     func update(from object: SyncCarbObject) {
         self.absorptionTime = object.absorptionTime

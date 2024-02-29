@@ -15,10 +15,8 @@ extension CachedCarbObject {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<CachedCarbObject> {
         return NSFetchRequest<CachedCarbObject>(entityName: "CachedCarbObject")
     }
-
+    @NSManaged public var primitiveAbsorptionData: Data?
     @NSManaged public var primitiveAbsorptionTime: NSNumber?
-    @NSManaged public var primitiveAbsorptionDataValues: String?
-    @NSManaged public var primitiveAbsorptionDataKeys: String?
     @NSManaged public var createdByCurrentApp: Bool
     @NSManaged public var foodType: String?
     @NSManaged public var grams: Double
@@ -34,7 +32,6 @@ extension CachedCarbObject {
     @NSManaged public var addedDate: Date?
     @NSManaged public var supercededDate: Date?
     @NSManaged public var anchorKey: Int64
-
 }
 
 extension CachedCarbObject: Encodable {

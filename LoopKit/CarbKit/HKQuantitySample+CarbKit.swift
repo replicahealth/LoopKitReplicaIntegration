@@ -14,7 +14,7 @@ let MetadataKeyAbsorptionTime = "com.loopkit.AbsorptionTime"
 let MetadataKeyUserCreatedDate = "com.loopkit.CarbKit.HKMetadataKey.UserCreatedDate"
 let MetadataKeyUserUpdatedDate = "com.loopkit.CarbKit.HKMetadataKey.UserUpdatedDate"
 let MetadataKeyAbsorptionPredictedGrams = "com.interoperable.PredictedCarbAbsorptionGrams"
-let MetadataKeyAbsorptionTimes = "com.interoperable.PredictedCarbAbsorptionTimes"
+let MetadataKeyAbsorptionTimes = "com.interoperable.PredictedCarbAbsorptionTimesMinutes"
 
 extension HKQuantitySample {
     public var foodType: String? {
@@ -22,8 +22,15 @@ extension HKQuantitySample {
     }
 
     public var absorptionTime: TimeInterval? {
-        return metadata?[MetadataKeyAbsorptionTime] as? TimeInterval
-            ?? metadata?[LegacyMetadataKeyAbsorptionTime] as? TimeInterval
+        if let interval = metadata?[MetadataKeyAbsorptionTime] as? TimeInterval ?? metadata?[LegacyMetadataKeyAbsorptionTime] as? TimeInterval{
+            return interval
+        }
+        else if let data = absorptionData{
+            guard let maxMins = data.keys.max() else { return nil }
+            let interval = TimeInterval(minutes: Double(maxMins))
+            return interval
+        }
+        return nil
     }
 
     public var absorptionData: [Int: Double]? {
@@ -40,6 +47,10 @@ extension HKQuantitySample {
         }
 
         return Dictionary(uniqueKeysWithValues: zip(times, values))
+    }
+    
+    public var absorptionDataBlob: Data? {
+        return try? JSONEncoder().encode(absorptionData)
     }
     
     public var createdByCurrentApp: Bool {

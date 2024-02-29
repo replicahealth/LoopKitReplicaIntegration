@@ -110,7 +110,7 @@ public final class PersistenceController {
             log.error("Could not open Model url at %@", String(describing: url))
             fatalError("Unable to find Model url")
         }
-        
+        print(url)
         managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         managedObjectContext.automaticallyMergesChangesFromParent = true
