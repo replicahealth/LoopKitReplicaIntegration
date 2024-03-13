@@ -36,11 +36,11 @@ public struct NewCarbEntry: CarbEntry, Equatable, RawRepresentable {
     }
 
     public init?(rawValue: RawValue) {
+        let absorptionData = rawValue["absorptionData"] as? [Int : Double]
         guard
             let date = rawValue["date"] as? Date,
             let grams = rawValue["grams"] as? Double,
-            let startDate = rawValue["startDate"] as? Date,
-            let absorptionData = rawValue["absorptionData"] as? [Int : Double]
+            let startDate = rawValue["startDate"] as? Date
         else {
             return nil
         }

@@ -98,7 +98,7 @@ extension CarbStatus {
         }
         var _absorptionModel = absorptionModel
         if let _absorptionData = absorptionData{
-            _absorptionModel = DataDrivenAbsorption(timingData: _absorptionData, maxObservationMins: Int((absorptionTime ?? (3 * 60)) / 60), total: quantity.doubleValue(for: .gram()))
+            _absorptionModel = DataDrivenAbsorption(timingData: _absorptionData, maxObservationMins: Int(absorptionTime / 60), total: quantity.doubleValue(for: .gram()))
         }
 
         let unit = HKUnit.gram()
