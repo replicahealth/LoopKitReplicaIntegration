@@ -235,9 +235,7 @@ extension CachedInsulinDeliveryObject {
         // override enactments/cancels.
         //assert(entry.startDate == startDate)
         assert(entry.syncIdentifier == syncIdentifier)
-        if !isMutable {
-            assertionFailure("Attempt to update un-mutable dose: \(self) with \(entry)")
-        }
+
 
         self.startDate = entry.startDate
         self.endDate = entry.endDate
