@@ -205,14 +205,15 @@ extension PumpEvent {
                 insulinType: insulinType,
                 automatic: automatic,
                 isMutable: mutable,
-                wasProgrammedByPumpUI: wasProgrammedByPumpUI
+                wasProgrammedByPumpUI: wasProgrammedByPumpUI,
+                policyIdentifier: policyIdentifier
             )
         }
         set {
             guard let entry = newValue else {
                 return
             }
-            
+
             doseType = entry.type
             startDate = entry.startDate
             endDate = entry.endDate
@@ -223,6 +224,7 @@ extension PumpEvent {
             automatic = entry.automatic
             mutable = entry.isMutable
             wasProgrammedByPumpUI = entry.wasProgrammedByPumpUI
+            policyIdentifier = entry.policyIdentifier
         }
     }
 

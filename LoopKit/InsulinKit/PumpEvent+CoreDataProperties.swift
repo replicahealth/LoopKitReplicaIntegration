@@ -33,6 +33,7 @@ extension PumpEvent {
     @NSManaged var primitiveAlarmType: String?
     @NSManaged var modificationCounter: Int64
     @NSManaged var wasProgrammedByPumpUI: Bool
+    @NSManaged var policyIdentifier: String?
 }
 
 extension PumpEvent: Encodable {
@@ -55,6 +56,7 @@ extension PumpEvent: Encodable {
         try container.encodeIfPresent(alarmType?.rawValue, forKey: .alarmType)
         try container.encode(modificationCounter, forKey: .modificationCounter)
         try container.encode(wasProgrammedByPumpUI, forKey: .wasProgrammedByPumpUI)
+        try container.encodeIfPresent(policyIdentifier, forKey: .policyIdentifier)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -75,5 +77,6 @@ extension PumpEvent: Encodable {
         case alarmType
         case modificationCounter
         case wasProgrammedByPumpUI
+        case policyIdentifier
     }
 }

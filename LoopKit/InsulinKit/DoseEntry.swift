@@ -28,6 +28,12 @@ public struct DoseEntry: TimelineValue, Equatable {
     /// The scheduled basal rate during this dose entry
     public internal(set) var scheduledBasalRate: HKQuantity?
 
+    /// Identifier of the dosing policy that recommended this dose, if known.
+    /// Stamped by `LoopDataManager` after a successful automatic enactment;
+    /// round-trips through Apple Health via HKQuantitySample metadata so the
+    /// attribution survives across app launches without a CoreData migration.
+    public let policyIdentifier: String?
+
     public init(suspendDate: Date, automatic: Bool? = nil, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false) {
         self.init(type: .suspend, startDate: suspendDate, value: 0, unit: .units, automatic: automatic, isMutable: isMutable, wasProgrammedByPumpUI: wasProgrammedByPumpUI)
     }
@@ -37,7 +43,7 @@ public struct DoseEntry: TimelineValue, Equatable {
     }
 
     // If the insulin model field is nil, it's assumed that the model is the type of insulin the pump dispenses
-    public init(type: DoseType, startDate: Date, endDate: Date? = nil, value: Double, unit: DoseUnit, deliveredUnits: Double? = nil, description: String? = nil, syncIdentifier: String? = nil, scheduledBasalRate: HKQuantity? = nil, insulinType: InsulinType? = nil, automatic: Bool? = nil, manuallyEntered: Bool = false, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false) {
+    public init(type: DoseType, startDate: Date, endDate: Date? = nil, value: Double, unit: DoseUnit, deliveredUnits: Double? = nil, description: String? = nil, syncIdentifier: String? = nil, scheduledBasalRate: HKQuantity? = nil, insulinType: InsulinType? = nil, automatic: Bool? = nil, manuallyEntered: Bool = false, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false, policyIdentifier: String? = nil) {
         self.type = type
         self.startDate = startDate
         self.endDate = endDate ?? startDate
@@ -52,6 +58,33 @@ public struct DoseEntry: TimelineValue, Equatable {
         self.manuallyEntered = manuallyEntered
         self.isMutable = isMutable
         self.wasProgrammedByPumpUI = wasProgrammedByPumpUI
+        self.policyIdentifier = policyIdentifier
+    }
+}
+
+public extension DoseEntry {
+    /// Return a copy of this DoseEntry tagged with the given policy identifier.
+    /// Defined inside LoopKit so it can read the internal `value` field for the
+    /// clone — callers outside the module can't construct a DoseEntry from
+    /// scratch and need this helper to stamp incoming pump events.
+    func stampingPolicy(_ identifier: String?) -> DoseEntry {
+        return DoseEntry(
+            type: type,
+            startDate: startDate,
+            endDate: endDate,
+            value: value,
+            unit: unit,
+            deliveredUnits: deliveredUnits,
+            description: description,
+            syncIdentifier: syncIdentifier,
+            scheduledBasalRate: scheduledBasalRate,
+            insulinType: insulinType,
+            automatic: automatic,
+            manuallyEntered: manuallyEntered,
+            isMutable: isMutable,
+            wasProgrammedByPumpUI: wasProgrammedByPumpUI,
+            policyIdentifier: identifier
+        )
     }
 }
 
@@ -173,6 +206,7 @@ extension DoseEntry: Codable {
         self.manuallyEntered = try container.decodeIfPresent(Bool.self, forKey: .manuallyEntered) ?? false
         self.isMutable = try container.decodeIfPresent(Bool.self, forKey: .isMutable) ?? false
         self.wasProgrammedByPumpUI = try container.decodeIfPresent(Bool.self, forKey: .wasProgrammedByPumpUI) ?? false
+        self.policyIdentifier = try container.decodeIfPresent(String.self, forKey: .policyIdentifier)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -194,6 +228,7 @@ extension DoseEntry: Codable {
         try container.encode(manuallyEntered, forKey: .manuallyEntered)
         try container.encode(isMutable, forKey: .isMutable)
         try container.encode(wasProgrammedByPumpUI, forKey: .wasProgrammedByPumpUI)
+        try container.encodeIfPresent(policyIdentifier, forKey: .policyIdentifier)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -212,6 +247,7 @@ extension DoseEntry: Codable {
         case manuallyEntered
         case isMutable
         case wasProgrammedByPumpUI
+        case policyIdentifier
     }
 }
 
@@ -246,6 +282,7 @@ extension DoseEntry: RawRepresentable {
         self.scheduledBasalRate = (rawValue["scheduledBasalRate"] as? Double).flatMap { HKQuantity(unit: .internationalUnitsPerHour, doubleValue: $0) }
         self.isMutable = rawValue["isMutable"] as? Bool ?? false
         self.wasProgrammedByPumpUI = rawValue["wasProgrammedByPumpUI"] as? Bool ?? false
+        self.policyIdentifier = rawValue["policyIdentifier"] as? String
     }
 
     public var rawValue: [String: Any] {
@@ -266,6 +303,7 @@ extension DoseEntry: RawRepresentable {
         rawValue["automatic"] = automatic
         rawValue["syncIdentifier"] = syncIdentifier
         rawValue["scheduledBasalRate"] = scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour)
+        rawValue["policyIdentifier"] = policyIdentifier
 
         return rawValue
     }

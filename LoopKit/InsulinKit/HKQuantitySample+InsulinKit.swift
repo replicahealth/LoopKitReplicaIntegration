@@ -29,6 +29,11 @@ let MetadataKeyAutomaticallyIssued = "com.loopkit.InsulinKit.MetadataKeyAutomati
 /// Flag indicating whether this dose is a suspend
 let MetadataKeyIsSuspend = "com.loopkit.InsulinKit.MetadataKeyIsSuspend"
 
+/// Identifier of the dosing policy that recommended this dose (e.g.
+/// "Automatic Bolus", "Temp Basal Only", "LLM Policy (experimental)"). Stamped
+/// by `LoopDataManager` after a successful automatic enactment.
+let MetadataKeyPolicyIdentifier = "com.loopkit.InsulinKit.MetadataKeyPolicyIdentifier"
+
 extension HKQuantitySample {
     convenience init?(type: HKQuantityType, unit: HKUnit, dose: DoseEntry, device: HKDevice?, provenanceIdentifier: String, syncVersion: Int = 1) {
         let units = dose.unitsInDeliverableIncrements
@@ -81,6 +86,10 @@ extension HKQuantitySample {
             metadata[MetadataKeyAutomaticallyIssued] = automatic
         }
 
+        if let policyIdentifier = dose.policyIdentifier {
+            metadata[MetadataKeyPolicyIdentifier] = policyIdentifier
+        }
+
         self.init(
             type: type,
             quantity: HKQuantity(unit: unit, doubleValue: units),
@@ -126,7 +135,11 @@ extension HKQuantitySample {
     var automaticallyIssued: Bool? {
         return metadata?[MetadataKeyAutomaticallyIssued] as? Bool
     }
-    
+
+    var policyIdentifier: String? {
+        return metadata?[MetadataKeyPolicyIdentifier] as? String
+    }
+
     var insulinType: InsulinType? {
         guard let rawType = metadata?[MetadataKeyInsulinType] as? String else {
             return nil
@@ -190,7 +203,8 @@ extension HKQuantitySample {
             scheduledBasalRate: scheduledBasalRate,
             insulinType: insulinType,
             automatic: automaticallyIssued,
-            manuallyEntered: manuallyEntered
+            manuallyEntered: manuallyEntered,
+            policyIdentifier: policyIdentifier
         )
     }
 }

@@ -238,7 +238,7 @@ struct PiecewiseLinearAbsorption: CarbAbsorptionComputable {
 
 struct DataDrivenAbsorption: CarbAbsorptionComputable {
     var timingData: [Int: Double] = [:]
-    var maxObservationMins: Int = 60 * 5
+    var maxObservationMins: Int = 60 * 6
     var total: Double = 1.0
     func percentAbsorptionAtPercentTime(_ percentTime: Double) -> Double {
         var absorption = 0.0
