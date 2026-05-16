@@ -34,6 +34,16 @@ let MetadataKeyIsSuspend = "com.loopkit.InsulinKit.MetadataKeyIsSuspend"
 /// by `LoopDataManager` after a successful automatic enactment.
 let MetadataKeyPolicyIdentifier = "com.loopkit.InsulinKit.MetadataKeyPolicyIdentifier"
 
+/// Name of the fallback algorithm when the selected policy delegated dose
+/// computation (e.g. LLM call failed → "Temp Basal Only").
+let MetadataKeyPolicyFallbackAlgorithm = "com.loopkit.InsulinKit.MetadataKeyPolicyFallbackAlgorithm"
+
+/// Free-text rationale (LLM bullets or full failure description).
+let MetadataKeyPolicyRationale = "com.loopkit.InsulinKit.MetadataKeyPolicyRationale"
+
+/// JSON snapshot of the inputs the policy consumed.
+let MetadataKeyPolicyInputBlob = "com.loopkit.InsulinKit.MetadataKeyPolicyInputBlob"
+
 extension HKQuantitySample {
     convenience init?(type: HKQuantityType, unit: HKUnit, dose: DoseEntry, device: HKDevice?, provenanceIdentifier: String, syncVersion: Int = 1) {
         let units = dose.unitsInDeliverableIncrements
@@ -90,6 +100,18 @@ extension HKQuantitySample {
             metadata[MetadataKeyPolicyIdentifier] = policyIdentifier
         }
 
+        if let policyFallbackAlgorithm = dose.policyFallbackAlgorithm {
+            metadata[MetadataKeyPolicyFallbackAlgorithm] = policyFallbackAlgorithm
+        }
+
+        if let policyRationale = dose.policyRationale {
+            metadata[MetadataKeyPolicyRationale] = policyRationale
+        }
+
+        if let policyInputBlob = dose.policyInputBlob {
+            metadata[MetadataKeyPolicyInputBlob] = policyInputBlob
+        }
+
         self.init(
             type: type,
             quantity: HKQuantity(unit: unit, doubleValue: units),
@@ -138,6 +160,18 @@ extension HKQuantitySample {
 
     var policyIdentifier: String? {
         return metadata?[MetadataKeyPolicyIdentifier] as? String
+    }
+
+    var policyFallbackAlgorithm: String? {
+        return metadata?[MetadataKeyPolicyFallbackAlgorithm] as? String
+    }
+
+    var policyRationale: String? {
+        return metadata?[MetadataKeyPolicyRationale] as? String
+    }
+
+    var policyInputBlob: String? {
+        return metadata?[MetadataKeyPolicyInputBlob] as? String
     }
 
     var insulinType: InsulinType? {
@@ -204,7 +238,10 @@ extension HKQuantitySample {
             insulinType: insulinType,
             automatic: automaticallyIssued,
             manuallyEntered: manuallyEntered,
-            policyIdentifier: policyIdentifier
+            policyIdentifier: policyIdentifier,
+            policyFallbackAlgorithm: policyFallbackAlgorithm,
+            policyRationale: policyRationale,
+            policyInputBlob: policyInputBlob
         )
     }
 }

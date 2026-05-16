@@ -28,11 +28,30 @@ public struct DoseEntry: TimelineValue, Equatable {
     /// The scheduled basal rate during this dose entry
     public internal(set) var scheduledBasalRate: HKQuantity?
 
-    /// Identifier of the dosing policy that recommended this dose, if known.
-    /// Stamped by `LoopDataManager` after a successful automatic enactment;
-    /// round-trips through Apple Health via HKQuantitySample metadata so the
-    /// attribution survives across app launches without a CoreData migration.
+    /// Identifier of the dosing policy that the user had selected at the time
+    /// this dose was issued (e.g. `"LLM Policy (experimental)"`,
+    /// `"Automatic Bolus"`, `"Temp Basal Only"`). Stamped after a successful
+    /// automatic enactment; round-trips through HK metadata + CoreData so the
+    /// attribution survives across app launches.
     public let policyIdentifier: String?
+
+    /// When the selected policy delegated dose computation to a backup
+    /// algorithm (e.g. the LLM call failed and Temp Basal Only ran instead),
+    /// this records *which* fallback algorithm ran. `nil` when no fallback
+    /// was needed.
+    public let policyFallbackAlgorithm: String?
+
+    /// Free-text reasoning attached to the dose. On a successful LLM run this
+    /// is the model's bullet-list rationale (or the raw model response if the
+    /// rationale field was missing). On a fallback path this is the full
+    /// failure description (HTTP status, OpenAI error message, raw body,
+    /// network error, etc.) — never truncated.
+    public let policyRationale: String?
+
+    /// JSON snapshot of the inputs the policy actually consumed when making
+    /// this decision (current glucose, IOB, COB, ISF, basal schedule, etc.).
+    /// Excludes the full predicted-glucose trajectory to keep the blob small.
+    public let policyInputBlob: String?
 
     public init(suspendDate: Date, automatic: Bool? = nil, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false) {
         self.init(type: .suspend, startDate: suspendDate, value: 0, unit: .units, automatic: automatic, isMutable: isMutable, wasProgrammedByPumpUI: wasProgrammedByPumpUI)
@@ -43,7 +62,7 @@ public struct DoseEntry: TimelineValue, Equatable {
     }
 
     // If the insulin model field is nil, it's assumed that the model is the type of insulin the pump dispenses
-    public init(type: DoseType, startDate: Date, endDate: Date? = nil, value: Double, unit: DoseUnit, deliveredUnits: Double? = nil, description: String? = nil, syncIdentifier: String? = nil, scheduledBasalRate: HKQuantity? = nil, insulinType: InsulinType? = nil, automatic: Bool? = nil, manuallyEntered: Bool = false, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false, policyIdentifier: String? = nil) {
+    public init(type: DoseType, startDate: Date, endDate: Date? = nil, value: Double, unit: DoseUnit, deliveredUnits: Double? = nil, description: String? = nil, syncIdentifier: String? = nil, scheduledBasalRate: HKQuantity? = nil, insulinType: InsulinType? = nil, automatic: Bool? = nil, manuallyEntered: Bool = false, isMutable: Bool = false, wasProgrammedByPumpUI: Bool = false, policyIdentifier: String? = nil, policyFallbackAlgorithm: String? = nil, policyRationale: String? = nil, policyInputBlob: String? = nil) {
         self.type = type
         self.startDate = startDate
         self.endDate = endDate ?? startDate
@@ -59,15 +78,24 @@ public struct DoseEntry: TimelineValue, Equatable {
         self.isMutable = isMutable
         self.wasProgrammedByPumpUI = wasProgrammedByPumpUI
         self.policyIdentifier = policyIdentifier
+        self.policyFallbackAlgorithm = policyFallbackAlgorithm
+        self.policyRationale = policyRationale
+        self.policyInputBlob = policyInputBlob
     }
 }
 
 public extension DoseEntry {
-    /// Return a copy of this DoseEntry tagged with the given policy identifier.
-    /// Defined inside LoopKit so it can read the internal `value` field for the
-    /// clone — callers outside the module can't construct a DoseEntry from
-    /// scratch and need this helper to stamp incoming pump events.
-    func stampingPolicy(_ identifier: String?) -> DoseEntry {
+    /// Return a copy of this DoseEntry tagged with the supplied policy
+    /// provenance fields. Defined inside LoopKit so it can read the internal
+    /// `value` field for the clone — callers outside the module can't
+    /// construct a DoseEntry from scratch and need this helper to stamp
+    /// incoming pump events.
+    func stampingPolicy(
+        identifier: String?,
+        fallbackAlgorithm: String? = nil,
+        rationale: String? = nil,
+        inputBlob: String? = nil
+    ) -> DoseEntry {
         return DoseEntry(
             type: type,
             startDate: startDate,
@@ -83,7 +111,10 @@ public extension DoseEntry {
             manuallyEntered: manuallyEntered,
             isMutable: isMutable,
             wasProgrammedByPumpUI: wasProgrammedByPumpUI,
-            policyIdentifier: identifier
+            policyIdentifier: identifier,
+            policyFallbackAlgorithm: fallbackAlgorithm,
+            policyRationale: rationale,
+            policyInputBlob: inputBlob
         )
     }
 }
@@ -207,6 +238,9 @@ extension DoseEntry: Codable {
         self.isMutable = try container.decodeIfPresent(Bool.self, forKey: .isMutable) ?? false
         self.wasProgrammedByPumpUI = try container.decodeIfPresent(Bool.self, forKey: .wasProgrammedByPumpUI) ?? false
         self.policyIdentifier = try container.decodeIfPresent(String.self, forKey: .policyIdentifier)
+        self.policyFallbackAlgorithm = try container.decodeIfPresent(String.self, forKey: .policyFallbackAlgorithm)
+        self.policyRationale = try container.decodeIfPresent(String.self, forKey: .policyRationale)
+        self.policyInputBlob = try container.decodeIfPresent(String.self, forKey: .policyInputBlob)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -229,6 +263,9 @@ extension DoseEntry: Codable {
         try container.encode(isMutable, forKey: .isMutable)
         try container.encode(wasProgrammedByPumpUI, forKey: .wasProgrammedByPumpUI)
         try container.encodeIfPresent(policyIdentifier, forKey: .policyIdentifier)
+        try container.encodeIfPresent(policyFallbackAlgorithm, forKey: .policyFallbackAlgorithm)
+        try container.encodeIfPresent(policyRationale, forKey: .policyRationale)
+        try container.encodeIfPresent(policyInputBlob, forKey: .policyInputBlob)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -248,6 +285,9 @@ extension DoseEntry: Codable {
         case isMutable
         case wasProgrammedByPumpUI
         case policyIdentifier
+        case policyFallbackAlgorithm
+        case policyRationale
+        case policyInputBlob
     }
 }
 
@@ -283,6 +323,9 @@ extension DoseEntry: RawRepresentable {
         self.isMutable = rawValue["isMutable"] as? Bool ?? false
         self.wasProgrammedByPumpUI = rawValue["wasProgrammedByPumpUI"] as? Bool ?? false
         self.policyIdentifier = rawValue["policyIdentifier"] as? String
+        self.policyFallbackAlgorithm = rawValue["policyFallbackAlgorithm"] as? String
+        self.policyRationale = rawValue["policyRationale"] as? String
+        self.policyInputBlob = rawValue["policyInputBlob"] as? String
     }
 
     public var rawValue: [String: Any] {
@@ -304,6 +347,9 @@ extension DoseEntry: RawRepresentable {
         rawValue["syncIdentifier"] = syncIdentifier
         rawValue["scheduledBasalRate"] = scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour)
         rawValue["policyIdentifier"] = policyIdentifier
+        rawValue["policyFallbackAlgorithm"] = policyFallbackAlgorithm
+        rawValue["policyRationale"] = policyRationale
+        rawValue["policyInputBlob"] = policyInputBlob
 
         return rawValue
     }

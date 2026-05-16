@@ -142,35 +142,6 @@ extension DosingDecisionStore {
         case failure(Error)
     }
     
-    /// Fetch dosing decisions whose `date` falls in `[start, end]`,
-    /// chronologically. Designed for random-access lookups (e.g. "show me
-    /// the decision behind this dose"), not for streaming uploads — for that
-    /// use `executeDosingDecisionQuery` instead.
-    public func getDosingDecisions(start: Date, end: Date, completion: @escaping (Result<[StoredDosingDecision], Error>) -> Void) {
-        dataAccessQueue.async {
-            var decisions: [StoredDosingDecision] = []
-            var fetchError: Error?
-
-            self.store.managedObjectContext.performAndWait {
-                let request: NSFetchRequest<DosingDecisionObject> = DosingDecisionObject.fetchRequest()
-                request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", start as NSDate, end as NSDate)
-                request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-                do {
-                    let stored = try self.store.managedObjectContext.fetch(request)
-                    decisions = stored.compactMap { self.decodeDosingDecision(fromData: $0.data) }
-                } catch {
-                    fetchError = error
-                }
-            }
-
-            if let fetchError = fetchError {
-                completion(.failure(fetchError))
-            } else {
-                completion(.success(decisions))
-            }
-        }
-    }
-
     public func executeDosingDecisionQuery(fromQueryAnchor queryAnchor: QueryAnchor?, limit: Int, completion: @escaping (DosingDecisionQueryResult) -> Void) {
         dataAccessQueue.async {
             var queryAnchor = queryAnchor ?? QueryAnchor()
@@ -264,17 +235,6 @@ public struct StoredDosingDecision {
     public var errors: [Issue]
     public var syncIdentifier: UUID
 
-    /// Free-text reasoning produced by an experimental dosing policy for this
-    /// loop iteration (e.g. the LLM's bullet-list rationale). `nil` when the
-    /// active strategy doesn't emit one. Stored locally and uploaded to remote
-    /// services that opt in to surfacing it.
-    public var policyRationale: String?
-
-    /// Open-ended structured diagnostic data from the policy — token counts,
-    /// model id, raw prompt hash, etc. Kept as `[String: String]` so we can
-    /// extend it without revisiting this struct again.
-    public var policyMetadata: [String: String]?
-
     public init(date: Date = Date(),
                 controllerTimeZone: TimeZone = TimeZone.current,
                 reason: String,
@@ -298,9 +258,7 @@ public struct StoredDosingDecision {
                 manualBolusRequested: Double? = nil,
                 warnings: [Issue] = [],
                 errors: [Issue] = [],
-                syncIdentifier: UUID = UUID(),
-                policyRationale: String? = nil,
-                policyMetadata: [String: String]? = nil) {
+                syncIdentifier: UUID = UUID()) {
         self.date = date
         self.controllerTimeZone = controllerTimeZone
         self.reason = reason
@@ -325,8 +283,6 @@ public struct StoredDosingDecision {
         self.warnings = warnings
         self.errors = errors
         self.syncIdentifier = syncIdentifier
-        self.policyRationale = policyRationale
-        self.policyMetadata = policyMetadata
     }
 
     public struct Settings: Codable, Equatable {
@@ -423,9 +379,7 @@ extension StoredDosingDecision: Codable {
                   manualBolusRequested: try container.decodeIfPresent(Double.self, forKey: .manualBolusRequested),
                   warnings: try container.decodeIfPresent([Issue].self, forKey: .warnings) ?? [],
                   errors: try container.decodeIfPresent([Issue].self, forKey: .errors) ?? [],
-                  syncIdentifier: try container.decode(UUID.self, forKey: .syncIdentifier),
-                  policyRationale: try container.decodeIfPresent(String.self, forKey: .policyRationale),
-                  policyMetadata: try container.decodeIfPresent([String: String].self, forKey: .policyMetadata))
+                  syncIdentifier: try container.decode(UUID.self, forKey: .syncIdentifier))
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -454,8 +408,6 @@ extension StoredDosingDecision: Codable {
         try container.encodeIfPresent(!warnings.isEmpty ? warnings : nil, forKey: .warnings)
         try container.encodeIfPresent(!errors.isEmpty ? errors : nil, forKey: .errors)
         try container.encode(syncIdentifier, forKey: .syncIdentifier)
-        try container.encodeIfPresent(policyRationale, forKey: .policyRationale)
-        try container.encodeIfPresent(policyMetadata, forKey: .policyMetadata)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -483,8 +435,6 @@ extension StoredDosingDecision: Codable {
         case warnings
         case errors
         case syncIdentifier
-        case policyRationale
-        case policyMetadata
     }
 }
 

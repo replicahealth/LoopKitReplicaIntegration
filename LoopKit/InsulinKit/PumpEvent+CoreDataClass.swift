@@ -206,7 +206,10 @@ extension PumpEvent {
                 automatic: automatic,
                 isMutable: mutable,
                 wasProgrammedByPumpUI: wasProgrammedByPumpUI,
-                policyIdentifier: policyIdentifier
+                policyIdentifier: policyIdentifier,
+                policyFallbackAlgorithm: policyFallbackAlgorithm,
+                policyRationale: policyRationale,
+                policyInputBlob: policyInputBlob
             )
         }
         set {
@@ -225,6 +228,9 @@ extension PumpEvent {
             mutable = entry.isMutable
             wasProgrammedByPumpUI = entry.wasProgrammedByPumpUI
             policyIdentifier = entry.policyIdentifier
+            policyFallbackAlgorithm = entry.policyFallbackAlgorithm
+            policyRationale = entry.policyRationale
+            policyInputBlob = entry.policyInputBlob
         }
     }
 

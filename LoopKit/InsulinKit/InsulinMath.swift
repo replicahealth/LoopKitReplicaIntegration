@@ -117,7 +117,11 @@ extension DoseEntry {
             insulinType: insulinType,
             automatic: automatic,
             isMutable: isMutable,
-            wasProgrammedByPumpUI: wasProgrammedByPumpUI
+            wasProgrammedByPumpUI: wasProgrammedByPumpUI,
+            policyIdentifier: policyIdentifier,
+            policyFallbackAlgorithm: policyFallbackAlgorithm,
+            policyRationale: policyRationale,
+            policyInputBlob: policyInputBlob
         )
     }
 }
@@ -302,7 +306,11 @@ extension DoseEntry {
             insulinType: insulinType,
             automatic: automatic,
             isMutable: isMutable,
-            wasProgrammedByPumpUI: wasProgrammedByPumpUI
+            wasProgrammedByPumpUI: wasProgrammedByPumpUI,
+            policyIdentifier: policyIdentifier,
+            policyFallbackAlgorithm: policyFallbackAlgorithm,
+            policyRationale: policyRationale,
+            policyInputBlob: policyInputBlob
         )
     }
 }
@@ -353,7 +361,7 @@ extension DoseEntry {
                 return self
             }
         }
-        return DoseEntry(type: type, startDate: startDate, endDate: endDate, value: value, unit: unit, deliveredUnits: resolvedUnits, description: description, syncIdentifier: syncIdentifier, scheduledBasalRate: scheduledBasalRate, insulinType: insulinType, automatic: automatic, isMutable: isMutable, wasProgrammedByPumpUI: wasProgrammedByPumpUI)
+        return DoseEntry(type: type, startDate: startDate, endDate: endDate, value: value, unit: unit, deliveredUnits: resolvedUnits, description: description, syncIdentifier: syncIdentifier, scheduledBasalRate: scheduledBasalRate, insulinType: insulinType, automatic: automatic, isMutable: isMutable, wasProgrammedByPumpUI: wasProgrammedByPumpUI, policyIdentifier: policyIdentifier, policyFallbackAlgorithm: policyFallbackAlgorithm, policyRationale: policyRationale, policyInputBlob: policyInputBlob)
     }
 }
 
@@ -396,7 +404,11 @@ extension Collection where Element == DoseEntry {
                         insulinType: suspend.insulinType,
                         automatic: suspend.automatic,
                         isMutable: suspend.isMutable,
-                        wasProgrammedByPumpUI: suspend.wasProgrammedByPumpUI
+                        wasProgrammedByPumpUI: suspend.wasProgrammedByPumpUI,
+                        policyIdentifier: suspend.policyIdentifier,
+                        policyFallbackAlgorithm: suspend.policyFallbackAlgorithm,
+                        policyRationale: suspend.policyRationale,
+                        policyInputBlob: suspend.policyInputBlob
                     ))
                     lastSuspend = nil
                 }
@@ -416,7 +428,11 @@ extension Collection where Element == DoseEntry {
                         insulinType: suspend.insulinType,
                         automatic: suspend.automatic,
                         isMutable: suspend.isMutable,
-                        wasProgrammedByPumpUI: suspend.wasProgrammedByPumpUI
+                        wasProgrammedByPumpUI: suspend.wasProgrammedByPumpUI,
+                        policyIdentifier: suspend.policyIdentifier,
+                        policyFallbackAlgorithm: suspend.policyFallbackAlgorithm,
+                        policyRationale: suspend.policyRationale,
+                        policyInputBlob: suspend.policyInputBlob
                     ))
 
                     lastSuspend = nil
@@ -436,7 +452,11 @@ extension Collection where Element == DoseEntry {
                                 insulinType: last.insulinType,
                                 automatic: last.automatic,
                                 isMutable: last.isMutable,
-                                wasProgrammedByPumpUI: last.wasProgrammedByPumpUI
+                                wasProgrammedByPumpUI: last.wasProgrammedByPumpUI,
+                                policyIdentifier: last.policyIdentifier,
+                                policyFallbackAlgorithm: last.policyFallbackAlgorithm,
+                                policyRationale: last.policyRationale,
+                                policyInputBlob: last.policyInputBlob
                             )
                         } else {
                             lastBasal = nil
@@ -457,7 +477,11 @@ extension Collection where Element == DoseEntry {
                         insulinType: last.insulinType,
                         automatic: last.automatic,
                         isMutable: last.isMutable,
-                        wasProgrammedByPumpUI: last.wasProgrammedByPumpUI
+                        wasProgrammedByPumpUI: last.wasProgrammedByPumpUI,
+                        policyIdentifier: last.policyIdentifier,
+                        policyFallbackAlgorithm: last.policyFallbackAlgorithm,
+                        policyRationale: last.policyRationale,
+                        policyInputBlob: last.policyInputBlob
                     ))
 
                     if last.endDate <= dose.startDate {

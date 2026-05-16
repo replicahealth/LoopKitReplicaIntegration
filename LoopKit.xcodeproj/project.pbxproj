@@ -1627,6 +1627,7 @@
 		C168CA78280DD00F002BD2A7 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		C168CA79280DD00F002BD2A7 /* Modelv4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Modelv4.xcdatamodel; sourceTree = "<group>"; };
 		8BAFAE1E2FB5D0C300B8E192 /* Modelv5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Modelv5.xcdatamodel; sourceTree = "<group>"; };
+		8BAFAE402FB6E0C300B8E192 /* Modelv6.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Modelv6.xcdatamodel; sourceTree = "<group>"; };
 		C16DA83E22E8D88F008624C2 /* LoopPluginBundleKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopPluginBundleKey.swift; sourceTree = "<group>"; };
 		C16DA84422E9330A008624C2 /* LoopUIPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopUIPlugin.swift; sourceTree = "<group>"; };
 		C16DFA45297E494500D56397 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -5486,8 +5487,9 @@
 				C168CA78280DD00F002BD2A7 /* Model.xcdatamodel */,
 				C168CA79280DD00F002BD2A7 /* Modelv4.xcdatamodel */,
 				8BAFAE1E2FB5D0C300B8E192 /* Modelv5.xcdatamodel */,
+				8BAFAE402FB6E0C300B8E192 /* Modelv6.xcdatamodel */,
 			);
-			currentVersion = 8BAFAE1E2FB5D0C300B8E192 /* Modelv5.xcdatamodel */;
+			currentVersion = 8BAFAE402FB6E0C300B8E192 /* Modelv6.xcdatamodel */;
 			path = Model.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

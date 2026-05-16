@@ -34,6 +34,9 @@ extension PumpEvent {
     @NSManaged var modificationCounter: Int64
     @NSManaged var wasProgrammedByPumpUI: Bool
     @NSManaged var policyIdentifier: String?
+    @NSManaged var policyFallbackAlgorithm: String?
+    @NSManaged var policyRationale: String?
+    @NSManaged var policyInputBlob: String?
 }
 
 extension PumpEvent: Encodable {
@@ -57,6 +60,9 @@ extension PumpEvent: Encodable {
         try container.encode(modificationCounter, forKey: .modificationCounter)
         try container.encode(wasProgrammedByPumpUI, forKey: .wasProgrammedByPumpUI)
         try container.encodeIfPresent(policyIdentifier, forKey: .policyIdentifier)
+        try container.encodeIfPresent(policyFallbackAlgorithm, forKey: .policyFallbackAlgorithm)
+        try container.encodeIfPresent(policyRationale, forKey: .policyRationale)
+        try container.encodeIfPresent(policyInputBlob, forKey: .policyInputBlob)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -78,5 +84,8 @@ extension PumpEvent: Encodable {
         case modificationCounter
         case wasProgrammedByPumpUI
         case policyIdentifier
+        case policyFallbackAlgorithm
+        case policyRationale
+        case policyInputBlob
     }
 }
