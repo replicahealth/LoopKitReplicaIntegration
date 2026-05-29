@@ -273,6 +273,7 @@ public struct StoredSettings: Equatable {
     // This is the user's display preference glucose unit. TODO: Rename?
     public let bloodGlucoseUnit: HKUnit?
     public let automaticDosingStrategy: AutomaticDosingStrategy
+    public let ppoMode: String
     public let syncIdentifier: UUID
 
     public init(date: Date = Date(),
@@ -299,6 +300,7 @@ public struct StoredSettings: Equatable {
                 pumpDevice: HKDevice? = nil,
                 bloodGlucoseUnit: HKUnit? = nil,
                 automaticDosingStrategy: AutomaticDosingStrategy = .tempBasalOnly,
+                ppoMode: String = "loopOnly",
                 syncIdentifier: UUID = UUID()) {
         self.date = date
         self.controllerTimeZone = controllerTimeZone
@@ -324,12 +326,23 @@ public struct StoredSettings: Equatable {
         self.pumpDevice = pumpDevice
         self.bloodGlucoseUnit = bloodGlucoseUnit
         self.automaticDosingStrategy = automaticDosingStrategy
+        self.ppoMode = ppoMode
         self.syncIdentifier = syncIdentifier
     }
 }
 
 extension StoredSettings: Codable {
     fileprivate static let codingGlucoseUnit = HKUnit.milligramsPerDeciliter
+
+    private static func decodePPOMode(from container: KeyedDecodingContainer<CodingKeys>) throws -> String {
+        if let ppoMode = try container.decodeIfPresent(String.self, forKey: .ppoMode) {
+            return ppoMode
+        }
+        if try container.decodeIfPresent(Bool.self, forKey: .ppoDosingEnabled) == true {
+            return "active"
+        }
+        return "loopOnly"
+    }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -358,6 +371,7 @@ extension StoredSettings: Codable {
                   pumpDevice: try container.decodeIfPresent(CodableDevice.self, forKey: .pumpDevice)?.device,
                   bloodGlucoseUnit: bloodGlucoseUnit,
                   automaticDosingStrategy: try container.decodeIfPresent(AutomaticDosingStrategy.self, forKey: .automaticDosingStrategy) ?? .tempBasalOnly,
+                  ppoMode: try Self.decodePPOMode(from: container),
                   syncIdentifier: try container.decode(UUID.self, forKey: .syncIdentifier))
     }
 
@@ -388,6 +402,7 @@ extension StoredSettings: Codable {
         try container.encodeIfPresent(pumpDevice.map { CodableDevice($0) }, forKey: .pumpDevice)
         try container.encode(bloodGlucoseUnit.unitString, forKey: .bloodGlucoseUnit)
         try container.encode(automaticDosingStrategy, forKey: .automaticDosingStrategy)
+        try container.encode(ppoMode, forKey: .ppoMode)
         try container.encode(syncIdentifier, forKey: .syncIdentifier)
     }
 
@@ -432,6 +447,8 @@ extension StoredSettings: Codable {
         case pumpDevice
         case bloodGlucoseUnit
         case automaticDosingStrategy
+        case ppoMode
+        case ppoDosingEnabled
         case syncIdentifier
     }
 }

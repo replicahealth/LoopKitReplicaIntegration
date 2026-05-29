@@ -229,6 +229,10 @@ public struct StoredDosingDecision {
     public var glucoseTargetRangeSchedule: GlucoseRangeSchedule?
     public var predictedGlucose: [PredictedGlucoseValue]?
     public var automaticDoseRecommendation: AutomaticDoseRecommendation?
+    public var loopAutomaticDoseRecommendation: AutomaticDoseRecommendation?
+    public var ppoEnabled: Bool?
+    public var ppoMultiplier: Double?
+    public var ppoActionIndex: Int?
     public var manualBolusRecommendation: ManualBolusRecommendationWithDate?
     public var manualBolusRequested: Double?
     public var warnings: [Issue]
@@ -254,6 +258,10 @@ public struct StoredDosingDecision {
                 glucoseTargetRangeSchedule: GlucoseRangeSchedule? = nil,
                 predictedGlucose: [PredictedGlucoseValue]? = nil,
                 automaticDoseRecommendation: AutomaticDoseRecommendation? = nil,
+                loopAutomaticDoseRecommendation: AutomaticDoseRecommendation? = nil,
+                ppoEnabled: Bool? = nil,
+                ppoMultiplier: Double? = nil,
+                ppoActionIndex: Int? = nil,
                 manualBolusRecommendation: ManualBolusRecommendationWithDate? = nil,
                 manualBolusRequested: Double? = nil,
                 warnings: [Issue] = [],
@@ -278,6 +286,10 @@ public struct StoredDosingDecision {
         self.glucoseTargetRangeSchedule = glucoseTargetRangeSchedule
         self.predictedGlucose = predictedGlucose
         self.automaticDoseRecommendation = automaticDoseRecommendation
+        self.loopAutomaticDoseRecommendation = loopAutomaticDoseRecommendation
+        self.ppoEnabled = ppoEnabled
+        self.ppoMultiplier = ppoMultiplier
+        self.ppoActionIndex = ppoActionIndex
         self.manualBolusRecommendation = manualBolusRecommendation
         self.manualBolusRequested = manualBolusRequested
         self.warnings = warnings
@@ -375,6 +387,10 @@ extension StoredDosingDecision: Codable {
                   glucoseTargetRangeSchedule: try container.decodeIfPresent(GlucoseRangeSchedule.self, forKey: .glucoseTargetRangeSchedule),
                   predictedGlucose: try container.decodeIfPresent([PredictedGlucoseValue].self, forKey: .predictedGlucose),
                   automaticDoseRecommendation: try container.decodeIfPresent(AutomaticDoseRecommendation.self, forKey: .automaticDoseRecommendation),
+                  loopAutomaticDoseRecommendation: try container.decodeIfPresent(AutomaticDoseRecommendation.self, forKey: .loopAutomaticDoseRecommendation),
+                  ppoEnabled: try container.decodeIfPresent(Bool.self, forKey: .ppoEnabled),
+                  ppoMultiplier: try container.decodeIfPresent(Double.self, forKey: .ppoMultiplier),
+                  ppoActionIndex: try container.decodeIfPresent(Int.self, forKey: .ppoActionIndex),
                   manualBolusRecommendation: try container.decodeIfPresent(ManualBolusRecommendationWithDate.self, forKey: .manualBolusRecommendation),
                   manualBolusRequested: try container.decodeIfPresent(Double.self, forKey: .manualBolusRequested),
                   warnings: try container.decodeIfPresent([Issue].self, forKey: .warnings) ?? [],
@@ -403,6 +419,10 @@ extension StoredDosingDecision: Codable {
         try container.encodeIfPresent(glucoseTargetRangeSchedule, forKey: .glucoseTargetRangeSchedule)
         try container.encodeIfPresent(predictedGlucose, forKey: .predictedGlucose)
         try container.encodeIfPresent(automaticDoseRecommendation, forKey: .automaticDoseRecommendation)
+        try container.encodeIfPresent(loopAutomaticDoseRecommendation, forKey: .loopAutomaticDoseRecommendation)
+        try container.encodeIfPresent(ppoEnabled, forKey: .ppoEnabled)
+        try container.encodeIfPresent(ppoMultiplier, forKey: .ppoMultiplier)
+        try container.encodeIfPresent(ppoActionIndex, forKey: .ppoActionIndex)
         try container.encodeIfPresent(manualBolusRecommendation, forKey: .manualBolusRecommendation)
         try container.encodeIfPresent(manualBolusRequested, forKey: .manualBolusRequested)
         try container.encodeIfPresent(!warnings.isEmpty ? warnings : nil, forKey: .warnings)
@@ -430,6 +450,10 @@ extension StoredDosingDecision: Codable {
         case glucoseTargetRangeSchedule
         case predictedGlucose
         case automaticDoseRecommendation
+        case loopAutomaticDoseRecommendation
+        case ppoEnabled
+        case ppoMultiplier
+        case ppoActionIndex
         case manualBolusRecommendation
         case manualBolusRequested
         case warnings
