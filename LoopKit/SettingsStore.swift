@@ -336,6 +336,9 @@ extension StoredSettings: Codable {
 
     private static func decodePPOMode(from container: KeyedDecodingContainer<CodingKeys>) throws -> String {
         if let ppoMode = try container.decodeIfPresent(String.self, forKey: .ppoMode) {
+            if ppoMode == "preview" {
+                return "active"
+            }
             return ppoMode
         }
         if try container.decodeIfPresent(Bool.self, forKey: .ppoDosingEnabled) == true {
