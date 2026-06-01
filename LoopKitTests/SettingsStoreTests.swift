@@ -716,6 +716,23 @@ class SettingsStoreCriticalEventLogTests: PersistenceControllerTestCase {
 }
 
 class StoredSettingsCodableTests: XCTestCase {
+    func testStoredSettingsMigratesLegacyPPODosingEnabled() throws {
+        let json = """
+        {
+          "automaticDosingStrategy": 0,
+          "bloodGlucoseUnit": "mg/dL",
+          "controllerTimeZone": { "identifier": "GMT" },
+          "date": "2020-05-14T22:48:15Z",
+          "dosingEnabled": false,
+          "ppoDosingEnabled": true,
+          "syncIdentifier": "2A67A303-1234-4CB8-1234-79498265368E"
+        }
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let decoded = try JSONDecoder().decode(StoredSettings.self, from: data)
+        XCTAssertEqual(decoded.ppoMode, "active")
+    }
+
     func testStoredSettingsCodable() throws {
         try assertStoredSettingsCodable(StoredSettings.test, encodesJSON: """
 {
@@ -965,6 +982,7 @@ class StoredSettingsCodableTests: XCTestCase {
     "unit" : "mg/dL",
     "value" : 75
   },
+  "ppoMode" : "loopOnly",
   "syncIdentifier" : "2A67A303-1234-4CB8-1234-79498265368E",
   "workoutTargetRange" : {
     "maxValue" : 160,
