@@ -28,18 +28,6 @@ public protocol ServiceDelegate: AnyObject, PluginHost {
     ///     - service: The service that wants deletion.
     func serviceWantsDeletion(_ service: Service)
 
-    /// Enacts a temporary schedule override requested by a remote service (e.g. Nightscout push).
-    func enactRemoteOverride(name: String, durationTime: TimeInterval?, remoteAddress: String) async throws
-
-    /// Cancels the active temporary schedule override requested by a remote service.
-    func cancelRemoteOverride() async throws
-
-    /// Delivers a bolus requested by a remote service.
-    func deliverRemoteBolus(amountInUnits: Double) async throws
-
-    /// Logs carbs requested by a remote service.
-    func deliverRemoteCarbs(amountInGrams: Double, absorptionTime: TimeInterval?, foodType: String?, startDate: Date?) async throws
-
 }
 
 public protocol Service: AnyObject {
